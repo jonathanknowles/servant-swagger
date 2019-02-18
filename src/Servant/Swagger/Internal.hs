@@ -149,15 +149,21 @@ markdownCode :: Text -> Text
 markdownCode s = "`" <> s <> "`"
 
 addDefaultResponse404 :: ParamName -> Swagger -> Swagger
-addDefaultResponse404 pname = setResponseWith (\old _new -> alter404 old) 404 (return response404)
+addDefaultResponse404 _ = id
+
+addDefaultResponse400 :: ParamName -> Swagger -> Swagger
+addDefaultResponse400 _ = id
+
+addDefaultResponse404' :: ParamName -> Swagger -> Swagger
+addDefaultResponse404' pname = setResponseWith (\old _new -> alter404 old) 404 (return response404)
   where
     sname = markdownCode pname
     description404 = sname <> " not found"
     alter404 = description %~ ((sname <> " or ") <>)
     response404 = mempty & description .~ description404
 
-addDefaultResponse400 :: ParamName -> Swagger -> Swagger
-addDefaultResponse400 pname = setResponseWith (\old _new -> alter400 old) 400 (return response400)
+addDefaultResponse400' :: ParamName -> Swagger -> Swagger
+addDefaultResponse400' pname = setResponseWith (\old _new -> alter400 old) 400 (return response400)
   where
     sname = markdownCode pname
     description400 = "Invalid " <> sname
@@ -338,7 +344,7 @@ instance (ToSchema a, AllAccept cs, HasSwagger sub, KnownSymbol (FoldDescription
         & schema    .~ ParamBody ref
 
 -- | This instance is an approximation.
--- 
+--
 -- @since 1.1.7
 instance (ToSchema a, Accept ct, HasSwagger sub, KnownSymbol (FoldDescription mods)) => HasSwagger (StreamBody' mods fr ct a :> sub) where
   toSwagger _ = toSwagger (Proxy :: Proxy sub)
